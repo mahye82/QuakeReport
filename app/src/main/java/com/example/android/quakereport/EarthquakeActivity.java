@@ -25,10 +25,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.view.View.GONE;
 
 public class EarthquakeActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Earthquake>>{
 
@@ -41,6 +44,11 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
 
     /** TextView that is displayed when the list is empty */
     private TextView emptyStateTextView;
+
+    /** ProgressBar indicator which shows a spinning wheel for an indeterminate time while data is
+     * being loaded to the app from the USGS server.
+      */
+    private ProgressBar loadingIndicator;
 
     /**
      * Constant value for the earthquake loader ID. We can choose any integer.
@@ -76,6 +84,8 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
         // Find a reference to the {@link ListView} in the layout
         ListView earthquakeListView = (ListView) findViewById(R.id.list);
         emptyStateTextView = (TextView) findViewById(R.id.empty_view);
+
+        // Set the empty view that should be displayed when the list for the ListView is empty
         earthquakeListView.setEmptyView(emptyStateTextView);
 
         // Create a new adapter that takes an empty list of earthquakes as input
@@ -137,6 +147,10 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
         // the "No Earthquakes found." would display when starting the app, before the
         // list is populated.
         emptyStateTextView.setText(R.string.no_earthquakes);
+
+        // Set the loading indicator to invisible after the loading is complete
+        loadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
+        loadingIndicator.setVisibility(View.GONE);
 
         // Clear the adapter of previous earthquake data
         mAdapter.clear();
