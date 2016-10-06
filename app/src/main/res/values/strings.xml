@@ -14,6 +14,11 @@
      limitations under the License.
 -->
 <resources>
+    <!-- Text to display in app bar at the top of all screens [CHAR LIMIT=20] -->
     <string name="app_name">Quake Report</string>
+    <!-- Text to add to some location strings when the USGS data does not state "of" in
+     its description of the location [CHAR LIMIT=15] -->
     <string name="near_the"> Near the </string>
+    <!-- Text to display in the list when there are no earthquakes [CHAR LIMIT=NONE] -->
+    <string name="no_earthquakes">No Earthquakes found.</string>
 </resources>

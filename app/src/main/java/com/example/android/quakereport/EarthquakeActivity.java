@@ -21,9 +21,11 @@ import android.content.Loader;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +36,11 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
     public static final String LOG_TAG = EarthquakeActivity.class.getName();
 
     /** URL for earthquake data from the USGS dataset */
-    private static final String USGS_URL = "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventtype=earthquake&orderby=time&minmag=6&limit=10";
+    private static final String USGS_URL =
+            "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventtype=earthquake&orderby=time&minmag=6&limit=10";
+
+    /** TextView that is displayed when the list is empty */
+    private TextView emptyStateTextView;
 
     /**
      * Constant value for the earthquake loader ID. We can choose any integer.
@@ -69,6 +75,8 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
     private void setupUI() {
         // Find a reference to the {@link ListView} in the layout
         ListView earthquakeListView = (ListView) findViewById(R.id.list);
+        emptyStateTextView = (TextView) findViewById(R.id.empty_view);
+        earthquakeListView.setEmptyView(emptyStateTextView);
 
         // Create a new adapter that takes an empty list of earthquakes as input
         mAdapter = new EarthquakeArrayAdapter(this, new ArrayList<Earthquake>());
@@ -124,6 +132,12 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
      */
     @Override
     public void onLoadFinished(Loader<List<Earthquake>> loader, List<Earthquake> earthquakes) {
+        // Update the TextView which should display the text explaining that "No Earthquakes found."
+        // This text is updated here, as opposed to in the XML for the TextView because otherwise
+        // the "No Earthquakes found." would display when starting the app, before the
+        // list is populated.
+        emptyStateTextView.setText(R.string.no_earthquakes);
+
         // Clear the adapter of previous earthquake data
         mAdapter.clear();
 
@@ -136,8 +150,9 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
 
     /**
      * Called when the load from the {@link EarthquakeLoader} is no longer valid, and will clear
-     * the data set of the adapter. (This isn't actually a callback that will occur in this app,
-     * however all implementations of {@link LoaderManager.LoaderCallbacks} require this method.)
+     * the data set of the adapter. (This isn't actually a callback that will occur often in this
+     * app, however all implementations of {@link LoaderManager.LoaderCallbacks} require this
+     * method.)
      * @param loader is the loader being reset.
      */
     @Override
