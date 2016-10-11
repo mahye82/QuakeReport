@@ -19,10 +19,12 @@ import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -36,6 +38,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.attr.value;
 import static android.view.View.GONE;
 
 public class EarthquakeActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Earthquake>>{
@@ -43,9 +46,9 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
     /** The class name, for any log messages. */
     public static final String LOG_TAG = EarthquakeActivity.class.getName();
 
-    /** URL for earthquake data from the USGS dataset */
-    private static final String USGS_URL =
-            "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventtype=earthquake&orderby=time&minmag=6&limit=10";
+    /** Query URL for earthquake data from the USGS dataset */
+    private static final String USGS_REQUEST_URL =
+            "http://earthquake.usgs.gov/fdsnws/event/1/query";
 
     /** TextView that is displayed when the list is empty */
     private TextView emptyStateTextView;
@@ -154,7 +157,8 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
 
     /**
      * Create the {@link EarthquakeLoader} and pass the USGS URL so it knows where to retrieve the
-     * data from. Note that this method is called by the initLoader() method, but is only
+     * data from. This method gets the user Preferences to be used to create the query URL.
+     * Note that this method is called by the initLoader() method, but is only
      * invoked when a loader (with the ID that was passed into the initLoader() as an argument)
      * does not exist.
      * @param id is the ID we gave to the loader to be called.
@@ -163,8 +167,30 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
      */
     @Override
     public Loader<List<Earthquake>> onCreateLoader(int id, Bundle bundle) {
+        // Retrieve the user's preferences
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Get the minimum magnitude value to be used - this can be the value the user entered
+        // (which was then stored in the associated key) OR it can be a default value we defined in
+        // strings.XML
+        String minMagnitude = sharedPrefs.getString(
+                getString(R.string.settings_min_magnitude_key),
+                getString(R.string.settings_min_magnitude_default));
+
+        // Create a URI from the base query URL, then create a URI builder from this URI
+        Uri baseUri = Uri.parse(USGS_REQUEST_URL);
+        Uri.Builder uriBuilder = baseUri.buildUpon();
+
+        // Add the query parameters to the Uri.Builder, where the first argument is the key (name
+        // of the parameter, as defined on the USGS Earthquakes API site) and the second is the
+        // value.
+        uriBuilder.appendQueryParameter("format", "geojson");
+        uriBuilder.appendQueryParameter("limit", "10");
+        uriBuilder.appendQueryParameter("minmag", minMagnitude);
+        uriBuilder.appendQueryParameter("orderby", "time");
+
         // Create a new loader for the given URL
-        return new EarthquakeLoader(this, USGS_URL);
+        return new EarthquakeLoader(this, uriBuilder.toString());
     }
 
     /**
